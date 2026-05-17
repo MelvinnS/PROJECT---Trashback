@@ -21,7 +21,7 @@ class BottomNavBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: 70 + MediaQuery.of(context).padding.bottom,
+      height: 70,
       decoration: BoxDecoration(
         color: Colors.white,
         boxShadow: [
@@ -33,7 +33,7 @@ class BottomNavBar extends StatelessWidget {
         ],
       ),
       child: Padding(
-        padding: EdgeInsets.only(bottom: MediaQuery.of(context).padding.bottom),
+        padding: EdgeInsets.zero,
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: List.generate(items.length, (index) {
@@ -47,21 +47,29 @@ class BottomNavBar extends StatelessWidget {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Image.asset(
-                      isActive
-                          ? items[index].assetActive
-                          : items[index].assetInactive,
-                      width: 24,
-                      height: 24,
-                      errorBuilder: (context, error, stackTrace) {
-                        return Icon(
-                          _fallbackIcon(index),
-                          size: 24,
-                          color: isActive
-                              ? AppTheme.primaryGreen
-                              : AppTheme.textLightGrey,
-                        );
-                      },
+                    ColorFiltered(
+                      colorFilter: ColorFilter.mode(
+                        isActive
+                            ? AppTheme.primaryGreen
+                            : AppTheme.textLightGrey,
+                        BlendMode.srcIn,
+                      ),
+                      child: Image.asset(
+                        isActive
+                            ? items[index].assetActive
+                            : items[index].assetInactive,
+                        width: 24,
+                        height: 24,
+                        errorBuilder: (context, error, stackTrace) {
+                          return Icon(
+                            _fallbackIcon(index),
+                            size: 24,
+                            color: isActive
+                                ? AppTheme.primaryGreen
+                                : AppTheme.textLightGrey,
+                          );
+                        },
+                      ),
                     ),
                     const SizedBox(height: 4),
                     Text(

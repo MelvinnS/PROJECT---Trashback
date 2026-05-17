@@ -36,19 +36,32 @@ class FeatureGrid extends StatelessWidget {
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        children: features.map((f) => _buildFeatureItem(f)).toList(),
+        children: features.map((f) => _buildFeatureItem(context, f)).toList(),
       ),
     );
   }
 
-  Widget _buildFeatureItem(FeatureItem item) {
+  Widget _buildFeatureItem(BuildContext context, FeatureItem item) {
     return GestureDetector(
       onTap: () {
-        // TODO: Navigate to feature
+        if (item.label == 'Artikel') {
+          Navigator.of(context).pushNamed('/articles');
+        } else if (item.label == 'Jemput Sampah') {
+          Navigator.of(context).pushNamed('/pickup');
+        } else if (item.label == 'Taruh') {
+          Navigator.of(context).pushNamed('/taruh');
+        } else if (item.label == 'Video Panduan') {
+          Navigator.of(context).pushNamed('/video_tutorial');
+        } else if (item.label == 'EcoMentor') {
+          Navigator.of(context).pushNamed('/ecomentor');
+        }
       },
       child: Column(
+
         children: [
+
           Container(
+
             width: 48,
             height: 48,
             decoration: BoxDecoration(

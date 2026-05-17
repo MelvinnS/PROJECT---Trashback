@@ -9,6 +9,9 @@ dependencies:
   flutter:
     sdk: flutter
   cupertino_icons: ^1.0.6
+  image_picker: ^1.2.1
+  provider: ^6.1.2
+ 
 
 dev_dependencies:
   flutter_test:
@@ -26,6 +29,7 @@ flutter:
     - assets/images/scooter_illustration.png
     - assets/images/avatar.png
     - assets/images/map_route.png
+    - assets/images/verifikasi.png
     # Recycle items
     - assets/images/bioplastic.png
     - assets/images/biomass.png
@@ -42,6 +46,10 @@ flutter:
     - assets/icons/ic_apple.png
     - assets/icons/ic_phone.png
     # Wallet action icons
+    # Taruh sampah icons
+    - assets/icons/ic_estimasi.png
+    - assets/icons/ic_kondisi.png
+    - assets/icons/ic_ecocash.png
     - assets/icons/ic_receive.png
     - assets/icons/ic_history.png
     - assets/icons/ic_saved.png
@@ -60,6 +68,10 @@ flutter:
     - assets/icons/nav_cart_active.png
     - assets/icons/nav_profile.png
     - assets/icons/nav_profile_active.png
+    # poto profile
+    - assets/images/Earlene.png
+    # foto random
+    - assets/images/limbah.png
 
   fonts:
     - family: Poppins

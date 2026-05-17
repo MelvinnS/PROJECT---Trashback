@@ -1,10 +1,14 @@
+// lib/screens/home_screen.dart
+
 import 'package:flutter/material.dart';
-import '../main.dart';
 import '../widgets/wallet_card.dart';
 import '../widgets/feature_grid.dart';
 import '../widgets/active_history_card.dart';
 import '../widgets/recycle_items_carousel.dart';
 import '../widgets/bottom_nav_bar.dart';
+import 'shop/shop_screen.dart';
+import 'profile_screen.dart';
+import 'history_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -22,95 +26,21 @@ class _HomeScreenState extends State<HomeScreen> {
       backgroundColor: const Color(0xFFF2F4F6),
       body: Stack(
         children: [
-          // ── 1. HEADER & BACKGROUND STACK ──
-          Stack(
-            children: [
-              // Background Image Pattern (Figma Design)
-              Container(
-                height: 280,
-                width: double.infinity,
-                decoration: const BoxDecoration(
-                  image: DecorationImage(
-                    image: AssetImage('assets/images/avatar.png'),
-                    fit: BoxFit.cover,
-                  ),
-                ),
-              ),
-              // Semi-transparent Watermark Logo
-              Positioned(
-                top: 60,
-                left: 0,
-                right: 0,
-                child: Opacity(
-                  opacity: 0.15,
-                  child: Image.asset(
-                    'assets/images/avatar.png', 
-                    height: 150,
-                  ),
-                ),
-              ),
-              // Greeting & Search Bar
-              SafeArea(
-                child: Column(
-                  children: [
-                    _buildHeader(),
-                    _buildSearchBar(),
-                  ],
-                ),
-              ),
-            ],
-          ),
-
-          // ── 2. MAIN SCROLLABLE CONTENT ──
-          SafeArea(
-            child: Column(
+          // ── Konten Utama menggunakan IndexedStack (State halaman terjaga & bebas eror constructor) ──
+          Positioned.fill(
+            bottom: 65, // Memberikan ruang agar konten bawah tidak tertutup navbar
+            child: IndexedStack(
+              index: _currentNavIndex,
               children: [
-                const SizedBox(height: 130), // Offset for Search Bar space
-                Expanded(
-                  child: SingleChildScrollView(
-                    physics: const BouncingScrollPhysics(),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // Wallet Card (Split Layout inside)
-                        const Padding(
-                          padding: EdgeInsets.symmetric(horizontal: 16),
-                          child: WalletCard(),
-                        ),
-                        const SizedBox(height: 24),
-
-                        // Fitur dan Layanan
-                        _buildSectionHeader('Fitur dan Layanan', 'Lihat Semua »'),
-                        const SizedBox(height: 12),
-                        const Padding(
-                          padding: EdgeInsets.symmetric(horizontal: 16),
-                          child: FeatureGrid(),
-                        ),
-                        const SizedBox(height: 24),
-
-                        // Riwayat Taruh Aktif (Horizontal Split Layout)
-                        _buildSectionHeader('Riwayat Taruh Aktif', null),
-                        const SizedBox(height: 12),
-                        const Padding(
-                          padding: EdgeInsets.symmetric(horizontal: 16),
-                          child: ActiveHistoryCard(),
-                        ),
-                        const SizedBox(height: 24),
-
-                        // Barang Daur Ulang
-                        _buildSectionHeader('Barang Daur Ulang', 'Lihat Semua »'),
-                        const SizedBox(height: 12),
-                        const RecycleItemsCarousel(),
-                        const SizedBox(height: 100), // Padding for Bottom Nav
-                      ],
-                    ),
-                  ),
-                ),
+                _buildHomeContent(),         // Index 0
+                const HistoryScreen(),       // Index 1 (Hapus isEmbedded)
+                const ShopScreen(),          // Index 2 (Hapus isEmbedded)
+                const ProfileScreen(),       // Index 3 (Hapus isEmbedded)
               ],
             ),
           ),
 
-          // ── 3. BOTTOM NAVIGATION BAR ──
+          // ── Bottom Navigation Bar (Selalu menetap di bawah) ──
           Positioned(
             bottom: 0,
             left: 0,
@@ -124,6 +54,80 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ],
       ),
+    );
+  }
+
+  // ─── Konten Tab 0: Beranda Utama ───────────────────────────────────────────
+  Widget _buildHomeContent() {
+    return Stack(
+      children: [
+        // Background header (Pattern & Avatar)
+        Stack(
+          children: [
+            Container(
+              height: 280,
+              width: double.infinity,
+              decoration: const BoxDecoration(
+                image: DecorationImage(
+                  image: AssetImage('assets/images/avatar.png'),
+                  fit: BoxFit.cover,
+                ),
+              ),
+            ),
+            Positioned(
+              top: 60,
+              left: 0,
+              right: 0,
+              child: Opacity(
+                opacity: 0.15,
+                child: Image.asset('assets/images/avatar.png', height: 150),
+              ),
+            ),
+            Column(
+              children: [
+                _buildHeader(),
+                _buildSearchBar(),
+              ],
+            ),
+          ],
+        ),
+
+        // Scrollable content untuk data dashboard
+        Positioned.fill(
+          child: SingleChildScrollView(
+            physics: const BouncingScrollPhysics(),
+            padding: const EdgeInsets.only(top: 130),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 16),
+                  child: WalletCard(),
+                ),
+                const SizedBox(height: 24),
+                _buildSectionHeader('Fitur dan Layanan', 'Lihat Semua »'),
+                const SizedBox(height: 12),
+                const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 16),
+                  child: FeatureGrid(),
+                ),
+                const SizedBox(height: 24),
+                _buildSectionHeader('Riwayat Taruh Aktif', null),
+                const SizedBox(height: 12),
+                const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 16),
+                  child: ActiveHistoryCard(),
+                ),
+                const SizedBox(height: 24),
+                _buildSectionHeader('Barang Daur Ulang', 'Lihat Semua »'),
+                const SizedBox(height: 12),
+                const RecycleItemsCarousel(),
+                const SizedBox(height: 16),
+              ],
+            ),
+          ),
+        ),
+      ],
     );
   }
 
@@ -148,7 +152,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   'Earlene Zabrina',
                   style: TextStyle(
                     fontSize: 18,
-                    fontWeight: FontWeight.w700,
+                    fontWeight: FontWeight.w700, // Fixed syntax weight
                     color: Colors.white,
                     fontFamily: 'Poppins',
                   ),
@@ -156,7 +160,6 @@ class _HomeScreenState extends State<HomeScreen> {
               ],
             ),
           ),
-          // User Profile Avatar
           Container(
             width: 45,
             height: 45,
@@ -168,7 +171,8 @@ class _HomeScreenState extends State<HomeScreen> {
               child: Image.asset(
                 'assets/images/avatar.png',
                 fit: BoxFit.cover,
-                errorBuilder: (context, error, stackTrace) => const Icon(Icons.person, color: Colors.white),
+                errorBuilder: (context, error, stackTrace) =>
+                    const Icon(Icons.person, color: Colors.white),
               ),
             ),
           ),
@@ -193,8 +197,8 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ],
         ),
-        child: Row(
-          children: const [
+        child: const Row(
+          children: [
             SizedBox(width: 15),
             Icon(Icons.search, color: Colors.grey, size: 22),
             SizedBox(width: 10),

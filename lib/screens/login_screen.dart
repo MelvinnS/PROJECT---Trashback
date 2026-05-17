@@ -41,189 +41,194 @@ class _LoginScreenState extends State<LoginScreen> {
 
     return Scaffold(
       backgroundColor: AppTheme.backgroundWhite,
-      body: SingleChildScrollView(
-        child: Column(
-          children: [
-            // ── Top Banner with recycling logo ──
-            _buildTopBanner(size),
+      body: SafeArea(
+        bottom: false,
+        child: SingleChildScrollView(
+          child: Column(
+            children: [
+              // ── Top Banner with recycling logo ──
+              _buildTopBanner(size),
 
-            // ── Login Card ──
-            Padding(
-              padding: const EdgeInsets.fromLTRB(24, 0, 24, 32),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const SizedBox(height: 28),
+              // ── Login Card ──
+              Padding(
+                padding: const EdgeInsets.fromLTRB(24, 0, 24, 32),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const SizedBox(height: 28),
 
-                  // Title & Subtitle
-                  const Text(
-                    'Masuk Ke Akun',
-                    style: TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.w700,
-                      color: AppTheme.textDark,
-                      fontFamily: 'Poppins',
+                    // Title & Subtitle
+                    const Text(
+                      'Masuk Ke Akun',
+                      style: TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.w700,
+                        color: AppTheme.textDark,
+                        fontFamily: 'Poppins',
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 4),
-                  const Text(
-                    'Selamat Datang Kembali!',
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: AppTheme.textGrey,
-                      fontFamily: 'Poppins',
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-
-                  // Email Field
-                  CustomTextField(
-                    controller: _emailController,
-                    hintText: 'Email atau nomor telepon',
-                    prefixAsset: 'assets/icons/ic_email.png',
-                    keyboardType: TextInputType.emailAddress,
-                  ),
-                  const SizedBox(height: 14),
-
-                  // Password Field
-                  CustomTextField(
-                    controller: _passwordController,
-                    hintText: 'Password',
-                    prefixAsset: 'assets/icons/ic_password.png',
-                    obscureText: _obscurePassword,
-                    suffixIcon: IconButton(
-                      icon: Icon(
-                        _obscurePassword
-                            ? Icons.visibility_off_outlined
-                            : Icons.visibility_outlined,
+                    const SizedBox(height: 4),
+                    const Text(
+                      'Selamat Datang Kembali!',
+                      style: TextStyle(
+                        fontSize: 14,
                         color: AppTheme.textGrey,
-                        size: 20,
+                        fontFamily: 'Poppins',
                       ),
-                      onPressed: () {
-                        setState(() => _obscurePassword = !_obscurePassword);
-                      },
                     ),
-                  ),
-                  const SizedBox(height: 24),
+                    const SizedBox(height: 24),
 
-                  // Masuk Button
-                  SizedBox(
-                    width: double.infinity,
-                    height: 52,
-                    child: ElevatedButton(
-                      onPressed: _isLoading ? null : _handleLogin,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppTheme.primaryGreen,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
+                    // Email Field
+                    CustomTextField(
+                      controller: _emailController,
+                      hintText: 'Email atau nomor telepon',
+                      prefixAsset: 'assets/icons/ic_email.png',
+                      keyboardType: TextInputType.emailAddress,
+                    ),
+                    const SizedBox(height: 14),
+
+                    // Password Field
+                    CustomTextField(
+                      controller: _passwordController,
+                      hintText: 'Password',
+                      prefixAsset: 'assets/icons/ic_password.png',
+                      obscureText: _obscurePassword,
+                      suffixIcon: IconButton(
+                        icon: Icon(
+                          _obscurePassword
+                              ? Icons.visibility_off_outlined
+                              : Icons.visibility_outlined,
+                          color: AppTheme.textGrey,
+                          size: 20,
                         ),
-                        elevation: 0,
+                        onPressed: () {
+                          setState(() => _obscurePassword = !_obscurePassword);
+                        },
                       ),
-                      child: _isLoading
-                          ? const SizedBox(
-                              width: 22,
-                              height: 22,
-                              child: CircularProgressIndicator(
-                                color: Colors.white,
-                                strokeWidth: 2.5,
-                              ),
-                            )
-                          : const Text(
-                              'Masuk',
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w600,
-                                color: Colors.white,
-                                fontFamily: 'Poppins',
-                              ),
-                            ),
                     ),
-                  ),
-                  const SizedBox(height: 24),
+                    const SizedBox(height: 24),
 
-                  // Divider: "Atau Masuk Dengan"
-                  Row(
-                    children: [
-                      const Expanded(
-                          child: Divider(color: AppTheme.borderGrey)),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 12),
-                        child: Text(
-                          'Atau Masuk Dengan',
-                          style: TextStyle(
-                            fontSize: 13,
-                            color: AppTheme.textGrey,
-                            fontFamily: 'Poppins',
+                    // Masuk Button
+                    SizedBox(
+                      width: double.infinity,
+                      height: 52,
+                      child: ElevatedButton(
+                        onPressed: _isLoading ? null : _handleLogin,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppTheme.primaryGreen,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          elevation: 0,
+                        ),
+                        child: _isLoading
+                            ? const SizedBox(
+                                width: 22,
+                                height: 22,
+                                child: CircularProgressIndicator(
+                                  color: Colors.white,
+                                  strokeWidth: 2.5,
+                                ),
+                              )
+                            : const Text(
+                                'Masuk',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.white,
+                                  fontFamily: 'Poppins',
+                                ),
+                              ),
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+
+                    // Divider: "Atau Masuk Dengan"
+                    Row(
+                      children: [
+                        const Expanded(
+                          child: Divider(color: AppTheme.borderGrey),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 12),
+                          child: Text(
+                            'Atau Masuk Dengan',
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: AppTheme.textGrey,
+                              fontFamily: 'Poppins',
+                            ),
+                          ),
+                        ),
+                        const Expanded(
+                          child: Divider(color: AppTheme.borderGrey),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 20),
+
+                    // Social Login Buttons
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        SocialLoginButton(
+                          assetPath: 'assets/icons/ic_google.png',
+                          onTap: () {
+                            // TODO: Google login
+                          },
+                        ),
+                        const SizedBox(width: 16),
+                        SocialLoginButton(
+                          assetPath: 'assets/icons/ic_apple.png',
+                          onTap: () {
+                            // TODO: Apple login
+                          },
+                        ),
+                        const SizedBox(width: 16),
+                        SocialLoginButton(
+                          assetPath: 'assets/icons/ic_phone.png',
+                          onTap: () {
+                            // TODO: Phone login
+                          },
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 32),
+
+                    // Register Link
+                    Center(
+                      child: GestureDetector(
+                        onTap: () {
+                          Navigator.of(context).pushNamed('/register');
+                        },
+                        child: RichText(
+                          text: const TextSpan(
+                            text: 'Belum Punya Akun? ',
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: AppTheme.textGrey,
+                              fontFamily: 'Poppins',
+                            ),
+                            children: [
+                              TextSpan(
+                                text: 'Daftar Sekarang',
+                                style: TextStyle(
+                                  color: AppTheme.primaryGreen,
+                                  fontWeight: FontWeight.w600,
+                                  decoration: TextDecoration.underline,
+                                  decorationColor: AppTheme.primaryGreen,
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                       ),
-                      const Expanded(
-                          child: Divider(color: AppTheme.borderGrey)),
-                    ],
-                  ),
-                  const SizedBox(height: 20),
-
-                  // Social Login Buttons
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      SocialLoginButton(
-                        assetPath: 'assets/icons/ic_google.png',
-                        onTap: () {
-                          // TODO: Google login
-                        },
-                      ),
-                      const SizedBox(width: 16),
-                      SocialLoginButton(
-                        assetPath: 'assets/icons/ic_apple.png',
-                        onTap: () {
-                          // TODO: Apple login
-                        },
-                      ),
-                      const SizedBox(width: 16),
-                      SocialLoginButton(
-                        assetPath: 'assets/icons/ic_phone.png',
-                        onTap: () {
-                          // TODO: Phone login
-                        },
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 32),
-
-                  // Register Link
-                  Center(
-                    child: GestureDetector(
-                      onTap: () {
-                        Navigator.of(context).pushNamed('/register');
-                      },
-                      child: RichText(
-                        text: const TextSpan(
-                          text: 'Belum Punya Akun? ',
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: AppTheme.textGrey,
-                            fontFamily: 'Poppins',
-                          ),
-                          children: [
-                            TextSpan(
-                              text: 'Daftar Sekarang',
-                              style: TextStyle(
-                                color: AppTheme.primaryGreen,
-                                fontWeight: FontWeight.w600,
-                                decoration: TextDecoration.underline,
-                                decorationColor: AppTheme.primaryGreen,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -284,3 +289,4 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 }
+

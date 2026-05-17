@@ -1,10 +1,24 @@
+// lib/main.dart  ← UPDATED (tambahkan bagian bertanda "// ← TAMBAH")
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:provider/provider.dart';             // ← TAMBAH
+import 'package:trashback/screens/shop/cart_screen.dart';
+import 'providers/cart_provider.dart';               // ← TAMBAH
 import 'screens/splash_screen.dart';
 import 'screens/login_screen.dart';
 import 'screens/register_screen.dart';
 import 'screens/welcome_screen.dart';
 import 'screens/home_screen.dart';
+import 'screens/profile_screen.dart';
+import 'screens/history_screen.dart';
+import 'screens/article_screen.dart';
+import 'screens/pickup_screen.dart';
+import 'screens/ecomentor_screen.dart';
+import 'screens/taruh_sampah_screen.dart';
+import 'screens/video_tutorial_screen.dart';
+import 'screens/shop/shop_screen.dart';      
+import 'package:trashback/screens/shop/shop_screen.dart';        // ← TAMBAH
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -22,18 +36,37 @@ class TrashBackApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'TrashBack',
-      debugShowCheckedModeBanner: false,
-      theme: AppTheme.lightTheme,
-      initialRoute: '/',
-      routes: {
-        '/': (context) => const SplashScreen(),
-        '/login': (context) => const LoginScreen(),
-        '/register': (context) => const RegisterScreen(),
-        '/welcome': (context) => const WelcomeScreen(),
-        '/home': (context) => const HomeScreen(),
-      },
+    // ← TAMBAH: Wrap dengan MultiProvider agar CartProvider tersedia global
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => CartProvider()),
+      ],
+      child: MaterialApp(
+        title: 'TrashBack',
+        debugShowCheckedModeBanner: false,
+        theme: AppTheme.lightTheme,
+        initialRoute: '/',
+        routes: {
+          '/': (context) => const SplashScreen(),
+          '/login': (context) => const LoginScreen(),
+          '/register': (context) => const RegisterScreen(),
+          '/welcome': (context) => const WelcomeScreen(),
+          '/home': (context) => const HomeScreen(),
+          '/profile': (context) => const ProfileScreen(),
+          '/history': (context) => const HistoryScreen(),
+          '/articles': (context) => const ArticleScreen(),
+          '/pickup': (context) => const PickupScreen(),
+          '/ecomentor': (context) => const EcoMentorScreen(),
+          '/taruh': (context) => const TaruhSampahScreen(),
+          '/video_tutorial': (context) => const VideoTutorialScreen(),
+          '/shop': (context) => const ShopScreen(),           // ← TAMBAH
+          '/cart': (context) => const CartScreen()
+          // Tambahkan route lain (Step selanjutnya):
+          // '/product': (context) => const ProductDetailScreen(),
+          // '/cart': (context) => const CartScreen(),
+          // '/checkout': (context) => const CheckoutScreen(),
+        },
+      ),
     );
   }
 }
@@ -71,7 +104,7 @@ class AppTheme {
         titleTextStyle: TextStyle(
           color: textDark,
           fontSize: 18,
-          fontWeight: FontWeight.w600, 
+          fontWeight: FontWeight.w600,
           fontFamily: 'Poppins',
         ),
       ),
@@ -117,3 +150,4 @@ class AppTheme {
     );
   }
 }
+
