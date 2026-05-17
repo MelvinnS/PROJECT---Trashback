@@ -2,25 +2,25 @@ import 'package:flutter/material.dart';
 
 import '../main.dart';
 import '../services/api_service.dart';
-
 import '../services/session_storage.dart';
-
 import '../widgets/custom_text_field.dart';
 import '../widgets/social_login_button.dart';
 
-
-class LoginScreen extends StatefulWidget {
-  const LoginScreen({super.key});
-
+/// LoginPage versi tugas: pastikan user disimpan ke SharedPreferences
+/// dengan key 'user' dalam bentuk JSON string.
+/// (SessionStorage.saveUser sudah menyimpan dengan key `user` dan JSON string.)
+class LoginPage extends StatefulWidget {
+  const LoginPage({super.key});
 
   @override
-  State<LoginScreen> createState() => _LoginScreenState();
+  State<LoginPage> createState() => _LoginPageState();
 }
 
-class _LoginScreenState extends State<LoginScreen> {
+class _LoginPageState extends State<LoginPage> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
-  final _formKey = GlobalKey<FormState>(); //tadi FormKey mnjadi FormState
+  final _formKey = GlobalKey<FormState>();
+
   bool _obscurePassword = true;
   bool _isLoading = false;
 
@@ -65,12 +65,12 @@ class _LoginScreenState extends State<LoginScreen> {
       final token = result['token'] as String;
       final user = result['user'];
 
-      // Simpan ke SharedPreferences (key sesuai spesifikasi).
+      // SessionStorage menyimpan:
+      // - token ke key 'token'
+      // - user ke key 'user' sebagai JSON string
       await SessionStorage().saveToken(token);
       await SessionStorage().saveUser(user);
 
-
-      // Navigasi setelah login sukses.
       if (!mounted) return;
       Navigator.of(context).pushNamedAndRemoveUntil('/home', (r) => false);
     } catch (e) {
@@ -79,9 +79,11 @@ class _LoginScreenState extends State<LoginScreen> {
       final isConn = msg.contains('Tidak dapat terhubung ke server');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(isConn
-              ? 'Tidak dapat terhubung ke server, pastikan Mockoon berjalan'
-              : msg),
+          content: Text(
+            isConn
+                ? 'Tidak dapat terhubung ke server, pastikan Mockoon berjalan'
+                : msg,
+          ),
           backgroundColor: Colors.redAccent,
         ),
       );
@@ -89,7 +91,6 @@ class _LoginScreenState extends State<LoginScreen> {
       if (mounted) setState(() => _isLoading = false);
     }
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -102,18 +103,13 @@ class _LoginScreenState extends State<LoginScreen> {
         child: SingleChildScrollView(
           child: Column(
             children: [
-              // ── Top Banner with recycling logo ──
               _buildTopBanner(size),
-
-              // ── Login Card ──
               Padding(
                 padding: const EdgeInsets.fromLTRB(24, 0, 24, 32),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const SizedBox(height: 28),
-
-                    // Title & Subtitle
                     const Text(
                       'Masuk Ke Akun',
                       style: TextStyle(
@@ -133,8 +129,6 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                     ),
                     const SizedBox(height: 24),
-
-                    // Email Field
                     CustomTextField(
                       controller: _emailController,
                       hintText: 'Email atau nomor telepon',
@@ -142,8 +136,6 @@ class _LoginScreenState extends State<LoginScreen> {
                       keyboardType: TextInputType.emailAddress,
                     ),
                     const SizedBox(height: 14),
-
-                    // Password Field
                     CustomTextField(
                       controller: _passwordController,
                       hintText: 'Password',
@@ -163,8 +155,6 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                     ),
                     const SizedBox(height: 24),
-
-                    // Masuk Button
                     SizedBox(
                       width: double.infinity,
                       height: 52,
@@ -198,8 +188,6 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                     ),
                     const SizedBox(height: 24),
-
-                    // Divider: "Atau Masuk Dengan"
                     Row(
                       children: [
                         const Expanded(
@@ -222,36 +210,26 @@ class _LoginScreenState extends State<LoginScreen> {
                       ],
                     ),
                     const SizedBox(height: 20),
-
-                    // Social Login Buttons
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         SocialLoginButton(
                           assetPath: 'assets/icons/ic_google.png',
-                          onTap: () {
-                            // TODO: Google login
-                          },
+                          onTap: () {},
                         ),
                         const SizedBox(width: 16),
                         SocialLoginButton(
                           assetPath: 'assets/icons/ic_apple.png',
-                          onTap: () {
-                            // TODO: Apple login
-                          },
+                          onTap: () {},
                         ),
                         const SizedBox(width: 16),
                         SocialLoginButton(
                           assetPath: 'assets/icons/ic_phone.png',
-                          onTap: () {
-                            // TODO: Phone login
-                          },
+                          onTap: () {},
                         ),
                       ],
                     ),
                     const SizedBox(height: 32),
-
-                    // Register Link
                     Center(
                       child: GestureDetector(
                         onTap: () {
@@ -297,7 +275,6 @@ class _LoginScreenState extends State<LoginScreen> {
       child: Stack(
         fit: StackFit.expand,
         children: [
-          // Background image (forest/green background)
           Image.asset(
             'assets/images/login_banner.png',
             fit: BoxFit.cover,
@@ -317,29 +294,6 @@ class _LoginScreenState extends State<LoginScreen> {
               );
             },
           ),
-          // Recycling logo overlay
-          // Center(
-          //   child: Image.asset(
-          //     'assets/images/recycle_logo_white.png',
-          //     width: 120,
-          //     height: 120,
-          //     errorBuilder: (context, error, stackTrace) {
-          //       return Container(
-          //         width: 100,
-          //         height: 100,
-          //         decoration: BoxDecoration(
-          //           color: Colors.white.withOpacity(0.15),
-          //           shape: BoxShape.circle,
-          //         ),
-          //         child: const Icon(
-          //           Icons.recycling_rounded,
-          //           color: Colors.white,
-          //           size: 60,
-          //         ),
-          //       );
-          //     },
-          //   ),
-          // ),
         ],
       ),
     );

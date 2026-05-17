@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
 
+import '../services/api_service.dart';
+import '../services/session_storage.dart';
 import '../services/dummy_database.dart';
 import '../widgets/profile_photo.dart';
+
+
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -12,31 +16,89 @@ class ProfileScreen extends StatefulWidget {
 
 class _ProfileScreenState extends State<ProfileScreen> {
   final DummyDatabase _db = DummyDatabase();
+  final ApiService _api = ApiService();
+
 
   static const Color primaryGreen = Color(0xFF2E7D32);
 
+  bool _isLoading = true;
+  Map<String, dynamic>? _profile;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadProfile();
+  }
+
+  Future<void> _loadProfile() async {
+    setState(() => _isLoading = true);
+
+    final token = await SessionStorage().getToken();
+    if (token == null || token.isEmpty) {
+      await SessionStorage().clear();
+      if (!mounted) return;
+      Navigator.of(context).pushNamedAndRemoveUntil('/login', (r) => false);
+      return;
+    }
+
+    try {
+      final data = await _api.getProfile(token: token);
+      if (!mounted) return;
+      setState(() {
+        _profile = data;
+        _isLoading = false;
+      });
+    } catch (e) {
+      final message = e.toString();
+      if (!mounted) return;
+
+      // Jika token expired / unauthorized
+      if (message.contains('401')) {
+        await SessionStorage().clear();
+        Navigator.of(context).pushNamedAndRemoveUntil('/login', (r) => false);
+        return;
+      }
+
+      // Requirement: jangan tampil dummy untuk profil user.
+      // Jadi kalau error lain, cukup hentikan loading.
+      setState(() {
+        _profile = null;
+        _isLoading = false;
+      });
+    }
+  }
+
+
   @override
   Widget build(BuildContext context) {
-    final name = _db.userProfile['name'] ?? '';
-    final address = _db.userProfile['address'] ?? '';
-    final level = _db.userProfile['level'] ?? '';
+    final name = (_profile?['name'] ?? '') as String;
+    final address = (_profile?['address'] ?? '') as String;
+    final level = (_profile?['level'] ?? '') as String;
 
+    final displayName = name.isNotEmpty ? name : 'Memuat...';
+    final displayAddress = address.isNotEmpty ? address : 'Memuat...';
+
+    // Stats/achievement masih pakai DummyDatabase kalau API belum menyediakan.
     final income = _db.stats['income'] as int;
     final totalDrop = _db.stats['totalDrop'] as int;
     final totalPickup = _db.stats['totalPickup'] as int;
+
 
     final incomeFormatted = _db.formatRupiah(income);
 
     return Scaffold(
       backgroundColor: Colors.white,
 
+
       // ✂️ HAPUS BLOK BOTTOMNAVBAR DI SINI BIAR GAK DOBEL SAMA INDUK UTAMA!
 
       body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.only(bottom: 24),
-          child: Column(
-            children: [
+        child: _isLoading
+            ? const Center(child: CircularProgressIndicator())
+            : SingleChildScrollView(
+                padding: const EdgeInsets.only(bottom: 24),
+                child: Column(
+                  children: [
               // ====================================
               // HEADER
               // ====================================
@@ -87,7 +149,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               const SizedBox(height: 14),
 
               Text(
-                name,
+                displayName,
                 textAlign: TextAlign.center,
                 style: const TextStyle(
                   fontFamily: 'Poppins',
@@ -100,7 +162,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               const SizedBox(height: 4),
 
               Text(
-                address,
+                displayAddress,
                 textAlign: TextAlign.center,
                 style: const TextStyle(
                   fontFamily: 'Poppins',

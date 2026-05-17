@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+
 import '../main.dart';
+import '../services/api_service.dart';
 import '../widgets/custom_text_field.dart';
+
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -10,44 +13,133 @@ class RegisterScreen extends StatefulWidget {
 }
 
 class _RegisterScreenState extends State<RegisterScreen> {
-  final TextEditingController _namaController = TextEditingController();
+  final TextEditingController _nameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
-  final TextEditingController _phoneController = TextEditingController();
-  final TextEditingController _alamatController = TextEditingController();
+  final TextEditingController _confirmPasswordController =
+      TextEditingController();
 
   bool _obscurePassword = true;
-  bool _agreeToTerms = false;
+  bool _obscureConfirmPassword = true;
   bool _isLoading = false;
 
+  final _formKey = GlobalKey<FormState>();
+
+  bool _isValidEmail(String email) =>
+      RegExp(r'^\S+@\S+\.\S+$').hasMatch(email);
+
+
   @override
+
   void dispose() {
-    _namaController.dispose();
+    _nameController.dispose();
     _emailController.dispose();
     _passwordController.dispose();
-    _phoneController.dispose();
-    _alamatController.dispose();
+    _confirmPasswordController.dispose();
     super.dispose();
   }
 
-  void _handleRegister() {
-    if (!_agreeToTerms) {
+
+
+  Future<void> _handleRegister() async {
+    final form = _formKey.currentState;
+      if (form == null) return;
+
+    // Karena CustomTextField tidak mendukung validator bawaan,
+    // validasi dilakukan manual.
+    final name = _nameController.text.trim();
+    final email = _emailController.text.trim();
+    final password = _passwordController.text;
+    final confirmPassword = _confirmPasswordController.text;
+
+    if (name.isEmpty || email.isEmpty || password.isEmpty || confirmPassword.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Harap setujui Syarat & Ketentuan terlebih dahulu'),
-          backgroundColor: AppTheme.primaryGreen,
+          content: Text('Semua field wajib diisi'),
+          backgroundColor: Colors.redAccent,
         ),
       );
       return;
     }
-    // TODO: Integrate with API
+
+    if (!_isValidEmail(email)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Format email tidak valid'),
+          backgroundColor: Colors.redAccent,
+        ),
+      );
+      return;
+    }
+
+    if (password.length < 6) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Password minimal 6 karakter'),
+          backgroundColor: Colors.redAccent,
+        ),
+      );
+      return;
+    }
+
+    if (password != confirmPassword) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Password dan konfirmasi tidak sama'),
+          backgroundColor: Colors.redAccent,
+        ),
+      );
+      return;
+    }
+
+
     setState(() => _isLoading = true);
-    Future.delayed(const Duration(milliseconds: 800), () {
-      if (mounted) {
-        setState(() => _isLoading = false);
-        Navigator.of(context).pushReplacementNamed('/welcome');
-      }
-    });
+    try {
+      final api = ApiService();
+
+      final name = _nameController.text.trim();
+      final email = _emailController.text.trim();
+      final password = _passwordController.text;
+
+      await api.register(email: email, password: password, name: name);
+
+      if (!mounted) return;
+
+      await showDialog<void>(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('Registrasi Berhasil'),
+          content: const Text('Registrasi berhasil, silakan login.'),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: const Text('OK'),
+            ),
+          ],
+        ),
+      );
+
+      if (!mounted) return;
+      Navigator.of(context).pushNamedAndRemoveUntil('/login', (r) => false);
+    } catch (e) {
+      if (!mounted) return;
+
+      final msg = e.toString();
+      final isConn = msg.contains('Tidak dapat terhubung ke server');
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(isConn
+              ? 'Tidak dapat terhubung ke server, pastikan Mockoon berjalan'
+              : msg),
+          backgroundColor: Colors.redAccent,
+        ),
+      );
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
   }
 
   @override
@@ -57,7 +149,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
       body: SafeArea(
         child: Column(
           children: [
-            // ── Custom AppBar ──
+            // Custom AppBar
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
               child: Row(
@@ -82,200 +174,155 @@ class _RegisterScreenState extends State<RegisterScreen> {
               ),
             ),
 
-            // ── Scrollable Content ──
             Expanded(
               child: SingleChildScrollView(
                 padding: const EdgeInsets.fromLTRB(24, 20, 24, 32),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    // Title
-                    const Text(
-                      'Daftar Akun',
-                      style: TextStyle(
-                        fontSize: 26,
-                        fontWeight: FontWeight.w700,
-                        color: AppTheme.textDark,
-                        fontFamily: 'Poppins',
+                child: Form(
+                  key: _formKey,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      const Text(
+                        'Daftar Akun',
+                        style: TextStyle(
+                          fontSize: 26,
+                          fontWeight: FontWeight.w700,
+                          color: AppTheme.textDark,
+                          fontFamily: 'Poppins',
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: 6),
-                    const Text(
-                      'Lengkapi data diri untuk membuat\nakun TrashBack',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        fontSize: 13,
-                        color: AppTheme.textGrey,
-                        height: 1.5,
-                        fontFamily: 'Poppins',
-                      ),
-                    ),
-                    const SizedBox(height: 28),
-
-                    // Nama Lengkap
-                    CustomTextField(
-                      controller: _namaController,
-                      hintText: 'Nama Lengkap',
-                      prefixAsset: 'assets/icons/ic_person.png',
-                      keyboardType: TextInputType.name,
-                    ),
-                    const SizedBox(height: 14),
-
-                    // Email
-                    CustomTextField(
-                      controller: _emailController,
-                      hintText: 'Email',
-                      prefixAsset: 'assets/icons/ic_email.png',
-                      keyboardType: TextInputType.emailAddress,
-                    ),
-                    const SizedBox(height: 14),
-
-                    // Password
-                    CustomTextField(
-                      controller: _passwordController,
-                      hintText: 'Password',
-                      prefixAsset: 'assets/icons/ic_password.png',
-                      obscureText: _obscurePassword,
-                      suffixIcon: IconButton(
-                        icon: Icon(
-                          _obscurePassword
-                              ? Icons.visibility_off_outlined
-                              : Icons.visibility_outlined,
+                      const SizedBox(height: 6),
+                      const Text(
+                        'Lengkapi data diri untuk membuat\nakun TrashBack',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: 13,
                           color: AppTheme.textGrey,
-                          size: 20,
+                          height: 1.5,
+                          fontFamily: 'Poppins',
                         ),
-                        onPressed: () {
-                          setState(
-                              () => _obscurePassword = !_obscurePassword);
-                        },
                       ),
-                    ),
-                    const SizedBox(height: 14),
+                      const SizedBox(height: 28),
 
-                    // Nomor Telepon
-                    CustomTextField(
-                      controller: _phoneController,
-                      hintText: 'Nomor Telepon',
-                      prefixAsset: 'assets/icons/ic_phone_outline.png',
-                      keyboardType: TextInputType.phone,
-                    ),
-                    const SizedBox(height: 14),
-
-                    // Alamat Lengkap
-                    CustomTextField(
-                      controller: _alamatController,
-                      hintText: 'Alamat Lengkap',
-                      prefixAsset: 'assets/icons/ic_location.png',
-                      keyboardType: TextInputType.streetAddress,
-                    ),
-                    const SizedBox(height: 20),
-
-                    // Checkbox Terms
-                    GestureDetector(
-                      onTap: () {
-                        setState(() => _agreeToTerms = !_agreeToTerms);
-                      },
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          _buildCheckbox(),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: RichText(
-                              text: const TextSpan(
-                                text: 'Saya setuju dengan ',
-                                style: TextStyle(
-                                  fontSize: 13,
-                                  color: AppTheme.textDark,
-                                  fontFamily: 'Poppins',
-                                  height: 1.5,
-                                ),
-                                children: [
-                                  TextSpan(
-                                    text: 'Syarat & Ketentuan',
-                                    style: TextStyle(
-                                      color: AppTheme.primaryGreen,
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                                  ),
-                                  TextSpan(text: ' dan '),
-                                  TextSpan(
-                                    text: 'Kebijakan Privasi',
-                                    style: TextStyle(
-                                      color: AppTheme.primaryGreen,
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ],
+                      CustomTextField(
+                        controller: _nameController,
+                        hintText: 'Nama Lengkap',
+                        prefixAsset: 'assets/icons/ic_person.png',
+                        keyboardType: TextInputType.name,
                       ),
-                    ),
-                    const SizedBox(height: 28),
+                      const SizedBox(height: 14),
 
-                    // Daftar Sekarang Button
-                    SizedBox(
-                      width: double.infinity,
-                      height: 52,
-                      child: ElevatedButton(
-                        onPressed: _isLoading ? null : _handleRegister,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: AppTheme.primaryGreen,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          elevation: 0,
-                        ),
-                        child: _isLoading
-                            ? const SizedBox(
-                                width: 22,
-                                height: 22,
-                                child: CircularProgressIndicator(
-                                  color: Colors.white,
-                                  strokeWidth: 2.5,
-                                ),
-                              )
-                            : const Text(
-                                'Daftar Sekarang',
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w600,
-                                  color: Colors.white,
-                                  fontFamily: 'Poppins',
-                                ),
-                              ),
+                      CustomTextField(
+                        controller: _emailController,
+                        hintText: 'Email',
+                        prefixAsset: 'assets/icons/ic_email.png',
+                        keyboardType: TextInputType.emailAddress,
                       ),
-                    ),
-                    const SizedBox(height: 24),
+                      const SizedBox(height: 14),
 
-                    // Already have account
-                    GestureDetector(
-                      onTap: () => Navigator.of(context).pop(),
-                      child: RichText(
-                        text: const TextSpan(
-                          text: 'Sudah Punya Akun? ',
-                          style: TextStyle(
-                            fontSize: 14,
+                      CustomTextField(
+                        controller: _passwordController,
+                        hintText: 'Password',
+                        prefixAsset: 'assets/icons/ic_password.png',
+                        obscureText: _obscurePassword,
+                        suffixIcon: IconButton(
+                          icon: Icon(
+                            _obscurePassword
+                                ? Icons.visibility_off_outlined
+                                : Icons.visibility_outlined,
                             color: AppTheme.textGrey,
-                            fontFamily: 'Poppins',
+                            size: 20,
                           ),
-                          children: [
-                            TextSpan(
-                              text: 'Masuk Di sini',
-                              style: TextStyle(
-                                color: AppTheme.primaryGreen,
-                                fontWeight: FontWeight.w600,
-                                decoration: TextDecoration.underline,
-                                decorationColor: AppTheme.primaryGreen,
-                              ),
-                            ),
-                          ],
+                          onPressed: () {
+                            setState(() => _obscurePassword = !_obscurePassword);
+                          },
                         ),
                       ),
-                    ),
-                  ],
+                      const SizedBox(height: 14),
+
+                      CustomTextField(
+                        controller: _confirmPasswordController,
+                        hintText: 'Konfirmasi Password',
+                        prefixAsset: 'assets/icons/ic_password.png',
+                        obscureText: _obscureConfirmPassword,
+                        suffixIcon: IconButton(
+                          icon: Icon(
+                            _obscureConfirmPassword
+                                ? Icons.visibility_off_outlined
+                                : Icons.visibility_outlined,
+                            color: AppTheme.textGrey,
+                            size: 20,
+                          ),
+                          onPressed: () {
+                            setState(() =>
+                                _obscureConfirmPassword = !_obscureConfirmPassword);
+                          },
+                        ),
+                      ),
+                      const SizedBox(height: 20),
+
+
+                      SizedBox(
+                        width: double.infinity,
+                        height: 52,
+                        child: ElevatedButton(
+                          onPressed: _isLoading ? null : _handleRegister,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppTheme.primaryGreen,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            elevation: 0,
+                          ),
+                          child: _isLoading
+                              ? const SizedBox(
+                                  width: 22,
+                                  height: 22,
+                                  child: CircularProgressIndicator(
+                                    color: Colors.white,
+                                    strokeWidth: 2.5,
+                                  ),
+                                )
+                              : const Text(
+                                  'Daftar Sekarang',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w600,
+                                    color: Colors.white,
+                                    fontFamily: 'Poppins',
+                                  ),
+                                ),
+                        ),
+                      ),
+                      const SizedBox(height: 24),
+
+                      // Already have account
+                      GestureDetector(
+                        onTap: () => Navigator.of(context).pop(),
+                        child: RichText(
+                          text: const TextSpan(
+                            text: 'Sudah Punya Akun? ',
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: AppTheme.textGrey,
+                              fontFamily: 'Poppins',
+                            ),
+                            children: [
+                              TextSpan(
+                                text: 'Masuk Di sini',
+                                style: TextStyle(
+                                  color: AppTheme.primaryGreen,
+                                  fontWeight: FontWeight.w600,
+                                  decoration: TextDecoration.underline,
+                                  decorationColor: AppTheme.primaryGreen,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),
@@ -284,28 +331,5 @@ class _RegisterScreenState extends State<RegisterScreen> {
       ),
     );
   }
-
-  Widget _buildCheckbox() {
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 200),
-      width: 22,
-      height: 22,
-      margin: const EdgeInsets.only(top: 2),
-      decoration: BoxDecoration(
-        color: _agreeToTerms ? AppTheme.primaryGreen : Colors.white,
-        border: Border.all(
-          color: _agreeToTerms ? AppTheme.primaryGreen : AppTheme.borderGrey,
-          width: 1.5,
-        ),
-        borderRadius: BorderRadius.circular(6),
-      ),
-      child: _agreeToTerms
-          ? const Icon(
-              Icons.check_rounded,
-              color: Colors.white,
-              size: 15,
-            )
-          : null,
-    );
-  }
 }
+

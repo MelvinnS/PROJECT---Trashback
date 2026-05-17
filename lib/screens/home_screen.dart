@@ -1,7 +1,12 @@
 // lib/screens/home_screen.dart
 
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import '../widgets/wallet_card.dart';
+import '../services/session_storage.dart';
+
+
 import '../widgets/feature_grid.dart';
 import '../widgets/active_history_card.dart';
 import '../widgets/recycle_items_carousel.dart';
@@ -19,10 +24,66 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   int _currentNavIndex = 0;
+  String _userName = '';
+
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUserNameOrRedirect();
+  }
+
+  Future<void> _loadUserNameOrRedirect() async {
+    // ignore: use_build_context_synchronously
+
+    // Ambil data user dari SharedPreferences yang disimpan saat login.
+    final userRaw = await SessionStorage().getUserRaw();
+    if (userRaw == null || userRaw.isEmpty) {
+      if (!mounted) return;
+      await SessionStorage().clear();
+      Navigator.of(context).pushNamedAndRemoveUntil('/login', (r) => false);
+      return;
+    }
+
+    try {
+      final decoded = jsonDecode(userRaw);
+      final name = decoded['name'];
+      if (name is String && name.isNotEmpty) {
+        if (!mounted) return;
+        setState(() => _userName = name);
+      }
+    } catch (_) {
+      // Jika parsing gagal, paksa logout.
+      if (!mounted) return;
+      await SessionStorage().clear();
+      Navigator.of(context).pushNamedAndRemoveUntil('/login', (r) => false);
+    }
+  }
+
+
 
   @override
   Widget build(BuildContext context) {
+    if (_userName.isEmpty) {
+      // Hindari tampil dummy. Kalau user belum ter-load, tampilkan loading singkat.
+      return const Scaffold(
+        backgroundColor: Color(0xFFF2F4F6),
+        body: Center(
+          child: Text(
+            'Memuat...',
+            style: TextStyle(
+              fontFamily: 'Poppins',
+              fontSize: 16,
+              color: Colors.black,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ),
+      );
+    }
+
     return Scaffold(
+
       backgroundColor: const Color(0xFFF2F4F6),
       body: Stack(
         children: [
@@ -32,10 +93,10 @@ class _HomeScreenState extends State<HomeScreen> {
             child: IndexedStack(
               index: _currentNavIndex,
               children: [
-                _buildHomeContent(),         // Index 0
-                const HistoryScreen(),       // Index 1 (Hapus isEmbedded)
-                const ShopScreen(),          // Index 2 (Hapus isEmbedded)
-                const ProfileScreen(),       // Index 3 (Hapus isEmbedded)
+                _buildHomeContent(),
+                HistoryScreen(), // Index 1
+                ShopScreen(), // Index 2
+                ProfileScreen(), // Index 3
               ],
             ),
           ),
@@ -100,10 +161,11 @@ class _HomeScreenState extends State<HomeScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 16),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
                   child: WalletCard(),
                 ),
+
                 const SizedBox(height: 24),
                 _buildSectionHeader('Fitur dan Layanan', 'Lihat Semua »'),
                 const SizedBox(height: 12),
@@ -121,7 +183,8 @@ class _HomeScreenState extends State<HomeScreen> {
                 const SizedBox(height: 24),
                 _buildSectionHeader('Barang Daur Ulang', 'Lihat Semua »'),
                 const SizedBox(height: 12),
-                const RecycleItemsCarousel(),
+                RecycleItemsCarousel(),
+
                 const SizedBox(height: 16),
               ],
             ),
@@ -133,15 +196,17 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _buildHeader() {
     return Padding(
+
       padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
       child: Row(
         children: [
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
-              children: const [
+              children: [
                 Text(
                   'Selamat Pagi,',
+
                   style: TextStyle(
                     fontSize: 12,
                     color: Colors.white,
@@ -149,14 +214,15 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                 ),
                 Text(
-                  'Earlene Zabrina',
+                  _userName,
                   style: TextStyle(
                     fontSize: 18,
-                    fontWeight: FontWeight.w700, // Fixed syntax weight
+                    fontWeight: FontWeight.w700,
                     color: Colors.white,
                     fontFamily: 'Poppins',
                   ),
                 ),
+
               ],
             ),
           ),
